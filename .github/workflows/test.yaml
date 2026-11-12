@@ -1,0 +1,45 @@
+name: Test chart-owners
+
+# Calls the actions of the chart-owners branch of rancher/charts without the
+# permissions they need, to see them load: each job must reach the first step of
+# the action and stop there, at the OIDC token, before any credential is read.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  by-branch:
+    name: ship-staged by branch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: mkdir chart && printf 'name: x\nversion: 0.0.0\n' > chart/Chart.yaml
+      - uses: rancher/charts/.github/actions/ship-staged@chart-owners
+        with:
+          chart-dir: chart
+
+  by-sha:
+    name: ship-staged by commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: mkdir chart && printf 'name: x\nversion: 0.0.0\n' > chart/Chart.yaml
+      - uses: rancher/charts/.github/actions/ship-staged@5e2b6285cd299576930393c1d668cefe670ad006
+        with:
+          chart-dir: chart
+
+  family-by-branch:
+    name: ship-family-staged by branch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: mkdir -p charts/a charts/b && printf 'name: a\nversion: 0.0.0\n' > charts/a/Chart.yaml && printf 'name: b\nversion: 0.0.0\n' > charts/b/Chart.yaml
+      - uses: rancher/charts/.github/actions/ship-family-staged@chart-owners
+        with:
+          family: test
+          chart-dirs: |
+            charts/a
+            charts/b
